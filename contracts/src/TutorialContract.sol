@@ -9,6 +9,7 @@ contract TutorialContract {
   bytes32 xtzUsdPriceId;
   address owner;
   mapping(address => uint256) public balances;
+  mapping(address => uint256) public cash;
 
   constructor(address _pyth, bytes32 _xtzUsdPriceId, address _owner) {
     pyth = IPyth(_pyth);
@@ -22,8 +23,12 @@ contract TutorialContract {
     balances[user] = 5;
   }
 
-  function getBalance(address user) external view returns (uint256) {
+  function getBalance(address user) public view returns (uint256) {
     return balances[user];
+  }
+
+  function getCash(address user) public view returns (uint256) {
+    return cash[user];
   }
 
   // Update the price
@@ -53,26 +58,24 @@ contract TutorialContract {
     if (msg.value >= oneDollarInWei) {
       // User paid enough money.
       balances[msg.sender] += 1;
+      cash[msg.sender] += msg.value;
       console2.log("Thank you for sending one dollar in XTZ!");
     } else {
       revert InsufficientFee();
     }
-
   }
 
   // Sell function: decrements sender's balance by 1
   function sell() external {
-    require(balances[msg.sender] > 0, "Insufficient balance to sell");
+    require(getBalance(msg.sender) > 0, "Insufficient balance to sell");
     balances[msg.sender] -= 1;
-    // TODO: Send some XTZ back?
   }
 
   function cashout() public {
-    uint256 balance = address(this).balance;
-    require(balance > 0, "No XTZ to cash out");
-    (bool success, ) = owner.call{value: balance}("");
+    uint256 myCash = getCash(address(this));
+    require(myCash > 0, "No XTZ to cash out");
+    (bool success, ) = owner.call{value: myCash}("");
     require(success, "Transfer failed");
-    // TODO: Keep track of what the seller has paid and send it back
   }
 
   // Error raised if the payment is not sufficient
