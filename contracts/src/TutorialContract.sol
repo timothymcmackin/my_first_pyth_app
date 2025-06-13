@@ -56,7 +56,8 @@ contract TutorialContract {
     if (msg.value >= oneDollarInWei) {
       // User paid enough money.
       balances[msg.sender] += 1;
-      cash[msg.sender] += msg.value;
+      // Increment their cash and keep 10% for fees
+      cash[msg.sender] += msg.value - (msg.value / 10);
       console2.log("Thank you for sending one dollar in XTZ!");
       console2.log("Your new cash is", cash[msg.sender]);
     } else {

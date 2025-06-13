@@ -47,10 +47,7 @@ contract ContractToTest is Test {
   function testContract() public {
     bytes[] memory updateData = createXtzUpdate(100);
 
-    // Give the contract some buffer money to pay for gas
-    vm.deal(address(myContract), XTZ_TO_WEI * 10);
-
-    vm.deal(testUser, XTZ_TO_WEI * 3);
+    vm.deal(testUser, XTZ_TO_WEI * 2);
     vm.startPrank(testUser);
 
     myContract.buy{ value: XTZ_TO_WEI }(updateData);
@@ -58,7 +55,7 @@ contract ContractToTest is Test {
     uint balance = myContract.getBalance(testUser);
     assertEq(balance, 2);
     uint cash = myContract.getCash(testUser);
-    assertEq(cash, XTZ_TO_WEI * 2);
+    assertEq(cash, XTZ_TO_WEI * 2 - (XTZ_TO_WEI * 2 / 10));
     myContract.sell();
     balance = myContract.getBalance(testUser);
     assertEq(balance, 1);
