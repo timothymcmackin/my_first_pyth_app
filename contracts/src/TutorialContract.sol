@@ -7,14 +7,12 @@ import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 contract TutorialContract {
   IPyth pyth;
   bytes32 xtzUsdPriceId;
-  address owner;
   mapping(address => uint256) public balances;
   mapping(address => uint256) public cash;
 
-  constructor(address _pyth, bytes32 _xtzUsdPriceId, address _owner) {
+  constructor(address _pyth, bytes32 _xtzUsdPriceId) {
     pyth = IPyth(_pyth);
     xtzUsdPriceId = _xtzUsdPriceId;
-    owner = _owner;
   }
 
   // Initialize accounts with 5 tokens to be nice
@@ -74,8 +72,8 @@ contract TutorialContract {
   function cashout() public {
     uint256 myCash = getCash(msg.sender);
     require(myCash > 0, "No XTZ to cash out");
-    (bool success, ) = owner.call{value: myCash}("");
-    require(success, "Transfer failed");
+    (bool sent, ) = msg.sender.call{value: myCash}("");
+    require(sent, "Failed to send Ether");
   }
 
   // Error raised if the payment is not sufficient

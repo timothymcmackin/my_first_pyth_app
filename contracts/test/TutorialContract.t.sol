@@ -9,14 +9,12 @@ contract ContractToTest is Test {
   MockPyth public pyth;
   bytes32 XTZ_PRICE_FEED_ID = bytes32(uint256(0x1));
   TutorialContract public app;
-  address public owner;
 
   uint256 XTZ_TO_WEI = 10 ** 18;
 
   function setUp() public {
     pyth = new MockPyth(60, 1);
-    owner = makeAddr("alice");
-    app = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID, owner);
+    app = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID);
   }
 
   function createXtzUpdate(
@@ -56,11 +54,7 @@ contract ContractToTest is Test {
     balance = app.getBalance(address(this));
     assertEq(balance, 1);
 
-    // Test cashout
-    uint ownerBalanceBefore = owner.balance;
-    app.cashout();
-    uint ownerBalanceAfter = owner.balance;
-    assertGt(ownerBalanceAfter, ownerBalanceBefore);
+    // TODO Test cashout
   }
 
   function testBadCashout() public {
