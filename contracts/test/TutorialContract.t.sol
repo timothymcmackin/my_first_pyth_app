@@ -8,13 +8,13 @@ import { MockPyth } from "@pythnetwork/pyth-sdk-solidity/MockPyth.sol";
 contract ContractToTest is Test {
   MockPyth public pyth;
   bytes32 XTZ_PRICE_FEED_ID = bytes32(uint256(0x1));
-  TutorialContract public app;
+  TutorialContract public myContract;
 
   uint256 XTZ_TO_WEI = 10 ** 18;
 
   function setUp() public {
     pyth = new MockPyth(60, 1);
-    app = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID);
+    myContract = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID);
   }
 
   function createXtzUpdate(
@@ -42,23 +42,38 @@ contract ContractToTest is Test {
     pyth.updatePriceFeeds{ value: value }(updateData);
   }
 
-  function testStuff() public {
-    bytes[] memory updateData = createXtzUpdate(100);
-    vm.deal(address(this), XTZ_TO_WEI * 2);
+  address public testUser = address(0x5E11E1);
 
-    app.buy{ value: XTZ_TO_WEI / 100 }(updateData);
-    app.buy{ value: XTZ_TO_WEI / 100 }(updateData);
-    uint balance = app.getBalance(address(this));
+  function testContract() public {
+    bytes[] memory updateData = createXtzUpdate(100);
+
+    // Give the contract some buffer money to pay for gas
+    vm.deal(address(myContract), XTZ_TO_WEI * 10);
+
+    vm.deal(testUser, XTZ_TO_WEI * 3);
+    vm.startPrank(testUser);
+
+    myContract.buy{ value: XTZ_TO_WEI }(updateData);
+    myContract.buy{ value: XTZ_TO_WEI }(updateData);
+    uint balance = myContract.getBalance(testUser);
     assertEq(balance, 2);
-    app.sell();
-    balance = app.getBalance(address(this));
+    uint cash = myContract.getCash(testUser);
+    assertEq(cash, XTZ_TO_WEI * 2);
+    myContract.sell();
+    balance = myContract.getBalance(testUser);
     assertEq(balance, 1);
 
-    // TODO Test cashout
+    // Test cashout
+    uint256 balanceBefore = testUser.balance;
+    myContract.cashout();
+    uint256 balanceAfter = testUser.balance;
+    assertLt(balanceBefore, balanceAfter);
+
+    vm.stopPrank();
   }
 
   function testBadCashout() public {
     vm.expectRevert();
-    app.cashout();
+    myContract.cashout();
   }
 }

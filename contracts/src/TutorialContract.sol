@@ -58,6 +58,7 @@ contract TutorialContract {
       balances[msg.sender] += 1;
       cash[msg.sender] += msg.value;
       console2.log("Thank you for sending one dollar in XTZ!");
+      console2.log("Your new cash is", cash[msg.sender]);
     } else {
       revert InsufficientFee();
     }
@@ -72,6 +73,12 @@ contract TutorialContract {
   function cashout() public {
     uint256 myCash = getCash(msg.sender);
     require(myCash > 0, "No XTZ to cash out");
+    console2.log("Your cash is:", myCash);
+    balances[msg.sender] = 0;
+    cash[msg.sender] = 0;
+    console2.log("Contract balance:");
+    console2.log(address(this).balance);
+    require(address(this).balance > myCash, "Not enough XTZ to send");
     (bool sent, ) = msg.sender.call{value: myCash}("");
     require(sent, "Failed to send Ether");
   }
