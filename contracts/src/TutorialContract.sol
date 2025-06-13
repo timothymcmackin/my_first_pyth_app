@@ -64,6 +64,15 @@ contract TutorialContract {
   function sell() external {
     require(balances[msg.sender] > 0, "Insufficient balance to sell");
     balances[msg.sender] -= 1;
+    // TODO: Send some XTZ back?
+  }
+
+  function cashout() public {
+    uint256 balance = address(this).balance;
+    require(balance > 0, "No XTZ to cash out");
+    (bool success, ) = owner.call{value: balance}("");
+    require(success, "Transfer failed");
+    // TODO: Keep track of what the seller has paid and send it back
   }
 
   // Error raised if the payment is not sufficient
