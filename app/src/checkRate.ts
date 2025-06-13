@@ -62,23 +62,18 @@ const getPrice = async (connection) => {
   const priceFeedUpdateData = await connection.getLatestPriceUpdates(priceIds) as PriceUpdate;
   const parsedPrice = priceFeedUpdateData.parsed![0].price;
   const actualPrice = parseInt(parsedPrice.price) * (10 ** parsedPrice.expo)
-  console.log ("One XTZ is worth ", actualPrice, "USD");
   return actualPrice;
 }
 
 // Call the cashout function to retrieve the XTZ you've sent to the contract (for tutorial purposes)
 const cashout = async () => {
+  console.log("My cash stored in the contract:", await getCash(), "XTZ");
+  console.log("Cashing out");
   const cashoutHash = await contract.write.cashout([],
     { gas: 30000000n }
   );
   await publicClient.waitForTransactionReceipt({ hash: cashoutHash });
-  const cashTx = await publicClient.getTransaction({ hash: cashoutHash});
-  console.log("Received", cashTx.value.toString(), "from the contract");
-  // const cashoutHash = await contract.write.cashout([]);
-  // await publicClient.waitForTransactionReceipt({ hash: cashoutHash });
-  // console.log("Cashed out.");
-  let cash = await getCash();
-  console.log("Ending cash in contract:", cash, "XTZ");
+  console.log("Ending cash in contract:", await getCash(), "XTZ");
 }
 
 const run = async () => {
@@ -101,7 +96,8 @@ const run = async () => {
 
   let i = 1;
   while (balance > 0 && i < 5) {
-    console.log("\nIteration", i++);
+    console.log("\n");
+    console.log("Iteration", i++);
     let baselinePrice = await getPrice(connection);
     console.log("Baseline price:", baselinePrice);
 
@@ -130,20 +126,10 @@ const run = async () => {
     }
     balance = await getBalance();
   }
-  // Cash out
-  console.log("Cashing out");
-  const cashoutHash = await contract.write.cashout([],
-    { gas: 30000000n }
-  );
-  await publicClient.waitForTransactionReceipt({ hash: cashoutHash });
-  const cashTx = await publicClient.getTransaction({ hash: cashoutHash});
-  console.log("Received", cashTx.value.toString(), "from the contract");
 
-  // Get new balance
-  balance = await getBalance()
-  console.log("Ending balance:", balance);
-  cash = await getCash();
-  console.log("Ending cash in contract:", cash, "XTZ");
+  // Cash out
+  console.log("\n");
+  await cashout();
 }
 
 // Get the baseline price and poll until it changes past the threshold
