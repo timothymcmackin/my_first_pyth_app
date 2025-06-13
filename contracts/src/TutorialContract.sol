@@ -72,7 +72,7 @@ contract TutorialContract {
   }
 
   function cashout() public {
-    uint256 myCash = getCash(address(this));
+    uint256 myCash = getCash(msg.sender);
     require(myCash > 0, "No XTZ to cash out");
     (bool success, ) = owner.call{value: myCash}("");
     require(success, "Transfer failed");
