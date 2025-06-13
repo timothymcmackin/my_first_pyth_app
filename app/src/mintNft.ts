@@ -2,7 +2,7 @@ import { createWalletClient, http, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { etherlinkTestnet } from "viem/chains";
 // import { EvmPriceServiceConnection } from "@pythnetwork/hermes-client"; // This seems to be outdated in the tutorial?
-import { HermesClient } from "@pythnetwork/hermes-client";
+import { HermesClient, PriceUpdate } from "@pythnetwork/hermes-client";
 import { getContract } from "viem";
 
 export const abi = [
@@ -49,6 +49,9 @@ export const abi = [
   },
 ] as const;
 
+const ETH_USD_ID = "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace" as string;
+const XTZ_USD_ID = "0x0affd4b8ad136a21d79bc82450a325ee12ff55a235abc242666e423b8bcffd03" as string;
+
 async function run() {
   const account = privateKeyToAccount(`0x${process.env["PRIVATE_KEY"] as any}`);
   const client = createWalletClient({
@@ -66,18 +69,33 @@ async function run() {
 
   const connection = new HermesClient("https://hermes.pyth.network");
   // const priceIds = [process.env["ETH_USD_ID"] as string];
-  const priceIds = ["0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace" as string]; // ETH-USD
+  // const priceIds = [ETH_USD_ID];
+  const priceIds = [XTZ_USD_ID];
   const priceFeedUpdateData = await connection.getLatestPriceUpdates(priceIds);
   console.log("Retrieved Pyth price update:");
   console.log(priceFeedUpdateData);
 
   const hash = await contract.write.updateAndMint(
-    [priceFeedUpdateData.binary.data as any],
-    // { value: parseEther("0.0005") }
-    { value: parseEther("0.5") }
+    [[`0x${priceFeedUpdateData.binary.data[0]}`]] as any,
+    { value: parseEther("5"),gas: 30000000n },
   );
   console.log("Transaction hash:");
   console.log(hash);
 }
 
 run();
+
+const getPrice = async () => {
+  const connection = new HermesClient("https://hermes.pyth.network");
+  const priceIds = [XTZ_USD_ID];
+  const priceFeedUpdateData = await connection.getLatestPriceUpdates(priceIds) as PriceUpdate;
+  console.log("Retrieved Pyth price update:");
+  const parsedPrice = priceFeedUpdateData.parsed![0].price;
+  console.log(parsedPrice);
+  const actualPrice = parseInt(parsedPrice.price) * (10 ** parsedPrice.expo);
+  console.log ("One XTZ is worth ", actualPrice, "USD");
+  const oneUSD = Math.ceil((1/actualPrice) * 100) / 100; // Round up to two decimals
+  console.log("So you need", oneUSD, "XTZ");
+}
+
+// getPrice();
