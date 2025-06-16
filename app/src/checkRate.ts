@@ -8,13 +8,13 @@ import { etherlinkTestnet } from "viem/chains";
 const XTZ_USD_ID = "0x0affd4b8ad136a21d79bc82450a325ee12ff55a235abc242666e423b8bcffd03" as string;
 
 // Contract I deployed
-// const CONTRACT_ADDRESS = "0x02904e07a4F042FD04132231B618EeCC611EE851" as any; // testnet
-const CONTRACT_ADDRESS = "0x5427FEf8cB0beA6efEF98a47298604CcD2a4E916" as any; //Sandbox
+// const CONTRACT_ADDRESS = "0xB935c07C2eC4FA74f2DA39A561E88A9613BE9668" as any; // testnet
+const CONTRACT_ADDRESS = "0xdBa0fC8341FBcBa64636137CBDCd8961452b54D8" as any; // sandbox
 
 // My account based on private key
 const myAccount: Account = privateKeyToAccount(`0x${process.env["PRIVATE_KEY"] as any}`);
 
-// View custom chain definition for Etherlink sandbox
+// Viem custom chain definition for Etherlink sandbox
 const etherlinkSandbox = defineChain({
   id: 128123,
   name: 'EtherlinkSandbox',
@@ -33,7 +33,7 @@ const etherlinkSandbox = defineChain({
 // Viem objects that allow programs to call the chain
 const walletClient = createWalletClient({
   account: myAccount,
-  chain: etherlinkSandbox,
+  chain: etherlinkSandbox, // Or use etherlinkTestnet from "viem/chains"
   transport: http(),
 });
 const contract = getContract({
@@ -146,8 +146,7 @@ const alertOnPriceFluctuations = async (_baselinePrice, connection): Promise<num
 
 run();
 
-// cashout();
-
+// Utility functions
 const getContractBalance = async () => {
   const wei = await publicClient.getBalance({ address: CONTRACT_ADDRESS });
   console.log("wei", wei.toString());
@@ -156,4 +155,10 @@ const getContractBalance = async () => {
   console.log(XTZRounded);
 }
 
-// getContractBalance();
+const adminCashout = async () => {
+  let contractBalance = await getContractBalance();
+  console.log("Contract balance before:", contractBalance);
+  await contract.write.adminCashout([],
+    { gas: 30000000n }
+  );
+}
