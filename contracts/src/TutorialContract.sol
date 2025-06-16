@@ -10,13 +10,11 @@ contract TutorialContract {
   mapping(address => uint256) balances;
   mapping(address => uint256) cash;
   address admin;
-  uint256 fees;
 
   constructor(address _pyth, bytes32 _xtzUsdPriceId, address _admin) {
     pyth = IPyth(_pyth);
     xtzUsdPriceId = _xtzUsdPriceId;
     admin = _admin;
-    fees = 0;
   }
 
   // Initialize accounts with 5 tokens to be nice
@@ -60,7 +58,7 @@ contract TutorialContract {
     if (msg.value >= oneDollarInWei) {
       // User paid enough money.
       balances[msg.sender] += 1;
-      // Increment their cash and keep 10% for fees
+      // Increment their cash minus 10% for fees
       cash[msg.sender] += msg.value - (msg.value / 10);
       console2.log("Thank you for sending one dollar in XTZ!");
       console2.log("Your new cash is", cash[msg.sender]);
