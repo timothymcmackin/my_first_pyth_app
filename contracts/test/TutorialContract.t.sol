@@ -10,11 +10,14 @@ contract ContractToTest is Test {
   bytes32 XTZ_PRICE_FEED_ID = bytes32(uint256(0x1));
   TutorialContract public myContract;
 
+  address public testUser = address(0x5E11E1);
+  address public admin = address(0x5E11E2);
+
   uint256 XTZ_TO_WEI = 10 ** 18;
 
   function setUp() public {
     pyth = new MockPyth(60, 1);
-    myContract = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID);
+    myContract = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID, admin);
   }
 
   function createXtzUpdate(
@@ -41,8 +44,6 @@ contract ContractToTest is Test {
     vm.deal(address(this), value);
     pyth.updatePriceFeeds{ value: value }(updateData);
   }
-
-  address public testUser = address(0x5E11E1);
 
   function testContract() public {
     bytes[] memory updateData = createXtzUpdate(100);

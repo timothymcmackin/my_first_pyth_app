@@ -7,12 +7,16 @@ import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 contract TutorialContract {
   IPyth pyth;
   bytes32 xtzUsdPriceId;
-  mapping(address => uint256) public balances;
-  mapping(address => uint256) public cash;
+  mapping(address => uint256) balances;
+  mapping(address => uint256) cash;
+  address admin;
+  uint256 fees;
 
-  constructor(address _pyth, bytes32 _xtzUsdPriceId) {
+  constructor(address _pyth, bytes32 _xtzUsdPriceId, address _admin) {
     pyth = IPyth(_pyth);
     xtzUsdPriceId = _xtzUsdPriceId;
+    admin = _admin;
+    fees = 0;
   }
 
   // Initialize accounts with 5 tokens to be nice
@@ -81,6 +85,13 @@ contract TutorialContract {
     console2.log(address(this).balance);
     require(address(this).balance > myCash, "Not enough XTZ to send");
     (bool sent, ) = msg.sender.call{value: myCash}("");
+    require(sent, "Failed to send Ether");
+  }
+
+  function adminCashout() public {
+    require(msg.sender == admin, "Only the admin can call this function");
+    // Calculate
+    (bool sent, ) = admin.call{value: address(this).balance}("");
     require(sent, "Failed to send Ether");
   }
 
