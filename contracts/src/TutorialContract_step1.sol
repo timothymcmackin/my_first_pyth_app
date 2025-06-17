@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import { console2 } from "forge-std/Test.sol";
 import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 
 contract TutorialContract {
@@ -31,7 +30,7 @@ contract TutorialContract {
     return oneDollarInWei;
   }
 
-  // Update and get
+  // Update and get the price in a single step
   function updateAndGet(bytes[] calldata pythPriceUpdate) external payable returns (uint256) {
     updatePrice((pythPriceUpdate));
     return getPrice();

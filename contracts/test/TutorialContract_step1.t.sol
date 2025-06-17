@@ -17,7 +17,7 @@ contract ContractToTest is Test {
     myContract = new TutorialContract(address(pyth), XTZ_PRICE_FEED_ID);
   }
 
-  // Utility function to create a fake Pyth price update for the test
+  // Utility function to create a mocked Pyth price update for the test
   function createXtzUpdate(
     int64 xtzPrice
   ) private view returns (bytes[] memory) {
@@ -46,11 +46,11 @@ contract ContractToTest is Test {
 
   // Set the price that 5 XTZ = 1 USD and verify
   function testUpdateAndGet() public {
-    // Set price
+    // Set price in mocked version of Pyth
     int64 xtzPrice = 5;
     setXtzPrice(xtzPrice);
 
-    // Call updateAndGet entrypoint and send enough for the Pyth fee
+    // Call the updateAndGet function and send enough for the Pyth fee
     bytes[] memory updateData = createXtzUpdate(xtzPrice);
     uint updateFee = pyth.getUpdateFee(updateData);
     vm.deal(address(this), updateFee);
