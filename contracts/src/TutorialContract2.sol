@@ -14,18 +14,8 @@ contract TutorialContract {
     xtzUsdPriceId = _xtzUsdPriceId;
   }
 
-  function getBalance(address user) public view returns (uint256) {
-    return balances[user];
-  }
-
-  // Initialize accounts with 5 tokens for the sake of the tutorial
-  function initAccount(address user) external {
-    require(balances[msg.sender] < 5, "You already have at least 5 tokens");
-    balances[user] = 5;
-  }
-
   // Update the price
-  function updatePrice(bytes[] calldata pythPriceUpdate) private {
+  function updatePrice(bytes[] calldata pythPriceUpdate) public {
     uint updateFee = pyth.getUpdateFee(pythPriceUpdate);
     pyth.updatePriceFeeds{ value: updateFee }(pythPriceUpdate);
   }
@@ -42,16 +32,22 @@ contract TutorialContract {
     return oneDollarInWei;
   }
 
+  // Update and get the price in a single step
+  function updateAndGet(bytes[] calldata pythPriceUpdate) external payable returns (uint256) {
+    updatePrice((pythPriceUpdate));
+    return getPrice();
+  }
+
   // Buy function: increments sender's balance by 1
   function buy(bytes[] calldata pythPriceUpdate) external payable {
+
+    // Update price
     updatePrice(pythPriceUpdate);
     uint256 oneDollarInWei = getPrice();
 
     // Require 1 USD worth of XTZ
     if (msg.value >= oneDollarInWei) {
-      // User paid enough money.
       balances[msg.sender] += 1;
-      console2.log("Thank you for sending one dollar in XTZ!");
     } else {
       revert InsufficientFee();
     }
@@ -68,7 +64,6 @@ contract TutorialContract {
     (bool sent, ) = msg.sender.call{value: oneDollarInWei}("");
     require(sent, "Failed to send XTZ");
     balances[msg.sender] -= 1;
-    console2.log("Sending you one dollar in XTZ");
   }
 
   // For tutorial purposes, cash out the XTZ in the contract
@@ -76,7 +71,17 @@ contract TutorialContract {
     require(address(this).balance > 0, "No XTZ to send");
     (bool sent, ) = msg.sender.call{value: address(this).balance}("");
     require(sent, "Failed to send XTZ");
-      balances[msg.sender] = 0;
+    balances[msg.sender] = 0;
+  }
+
+  // Initialize accounts with 5 tokens for the sake of the tutorial
+  function initAccount(address user) external {
+    require(balances[msg.sender] < 5, "You already have at least 5 tokens");
+    balances[user] = 5;
+  }
+
+  function getBalance(address user) public view returns (uint256) {
+    return balances[user];
   }
 
   // Error raised if the payment is not sufficient
